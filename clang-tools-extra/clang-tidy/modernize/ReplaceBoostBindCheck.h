@@ -19,13 +19,17 @@ namespace clang::tidy::modernize {
 /// http://clang.llvm.org/extra/clang-tidy/checks/modernize/replace-boost-bind.html
 class ReplaceBoostBindCheck : public ClangTidyCheck {
 public:
-  ReplaceBoostBindCheck(StringRef Name, ClangTidyContext *Context)
-      : ClangTidyCheck(Name, Context) {}
+  ReplaceBoostBindCheck(StringRef Name, ClangTidyContext *Context);
+  ~ReplaceBoostBindCheck();
   void registerMatchers(ast_matchers::MatchFinder *Finder) override;
   void check(const ast_matchers::MatchFinder::MatchResult &Result) override;
   bool isLanguageVersionSupported(const LangOptions &LangOpts) const override {
     return LangOpts.CPlusPlus;
   }
+
+private:
+  class Implementation;
+  std::unique_ptr<Implementation> Impl;
 };
 
 } // namespace clang::tidy::modernize

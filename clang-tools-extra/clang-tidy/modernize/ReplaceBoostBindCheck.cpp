@@ -15,7 +15,7 @@ using namespace clang::ast_matchers;
 namespace clang::tidy::modernize {
 
 void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
-  // Match only boost::bind
+  // Match boost::bind
   auto BoostBindMatcher = 
       callExpr(
           callee(
@@ -25,13 +25,24 @@ void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
           )
       ).bind("bindCall");
 
-  // Match the function calls, including those nested within other expressions
+  // Match boost::placeholders::_N using regex
+  auto BoostPlaceholderMatcher =
+      declRefExpr(
+          hasDeclaration(
+              namedDecl(
+                  matchesName("::boost::placeholders::_[1-9]")
+              )
+          )
+      ).bind("placeholder");
+
+  // Match the expressions, including those nested within other expressions
   Finder->addMatcher(
       traverse(TK_AsIs,
           expr(
               anyOf(
                   BoostBindMatcher,
-                  expr(forEachDescendant(BoostBindMatcher))
+                  BoostPlaceholderMatcher,
+                  forEachDescendant(stmt(anyOf(BoostBindMatcher, BoostPlaceholderMatcher)))
               )
           )
       ),
@@ -39,17 +50,26 @@ void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
 }
 
 void ReplaceBoostBindCheck::check(const MatchFinder::MatchResult &Result) {
-  const auto *BindCall = Result.Nodes.getNodeAs<CallExpr>("bindCall");
-  const auto *BindFunc = Result.Nodes.getNodeAs<FunctionDecl>("bindFunc");
-  
-  if (!BindCall || !BindFunc)
-    return;
+  // Handle boost::bind replacement
+  if (const auto *BindCall = Result.Nodes.getNodeAs<CallExpr>("bindCall")) {
+    if (const auto *BindFunc = Result.Nodes.getNodeAs<FunctionDecl>("bindFunc")) {
+      SourceRange Range = BindCall->getCallee()->getSourceRange();
+      diag(BindCall->getBeginLoc(), "use std::bind instead of boost::bind")
+          << FixItHint::CreateReplacement(Range, "std::bind");
+    }
+  }
 
-  // Get the source range for just the function name and qualifier
-  SourceRange Range = BindCall->getCallee()->getSourceRange();
-
-  diag(BindCall->getBeginLoc(), "use std::bind instead of boost::bind")
-      << FixItHint::CreateReplacement(Range, "std::bind");
+  // Handle boost::placeholders replacement
+  if (const auto *Placeholder = Result.Nodes.getNodeAs<DeclRefExpr>("placeholder")) {
+    StringRef Name = Placeholder->getDecl()->getName();
+    std::string Replacement = "std::placeholders::" + Name.str();
+    
+    SourceRange Range = Placeholder->getSourceRange();
+    diag(Placeholder->getBeginLoc(), 
+         "use std::placeholders::%0 instead of boost::placeholders::%0")
+        << Name
+        << FixItHint::CreateReplacement(Range, Replacement);
+  }
 }
 
 } // namespace clang::tidy::modernize

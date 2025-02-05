@@ -1,4 +1,4 @@
-//===--- ReplaceBoostBindCheck.h - clang-tidy -------------------*- C++ -*-===//
+//===--- ReplaceBoostBindCheck.h - clang-tidy --------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -13,7 +13,7 @@
 
 namespace clang::tidy::modernize {
 
-/// Replaces boost::bind with std::bind
+/// Replaces boost::bind with std::bind and boost::placeholders with std::placeholders
 ///
 /// For the user-facing documentation see:
 /// http://clang.llvm.org/extra/clang-tidy/checks/modernize/replace-boost-bind.html

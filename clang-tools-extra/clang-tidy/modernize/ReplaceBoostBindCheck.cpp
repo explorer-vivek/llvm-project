@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "ReplaceBoostBindCheck.h"
+#include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 
 using namespace clang::ast_matchers;
@@ -14,19 +15,41 @@ using namespace clang::ast_matchers;
 namespace clang::tidy::modernize {
 
 void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
-  // FIXME: Add matchers.
-  Finder->addMatcher(functionDecl().bind("x"), this);
+  // Match only boost::bind
+  auto BoostBindMatcher = 
+      callExpr(
+          callee(
+              functionDecl(
+                  hasName("::boost::bind")
+              ).bind("bindFunc")
+          )
+      ).bind("bindCall");
+
+  // Match the function calls, including those nested within other expressions
+  Finder->addMatcher(
+      traverse(TK_AsIs,
+          expr(
+              anyOf(
+                  BoostBindMatcher,
+                  expr(forEachDescendant(BoostBindMatcher))
+              )
+          )
+      ),
+      this);
 }
 
 void ReplaceBoostBindCheck::check(const MatchFinder::MatchResult &Result) {
-  // FIXME: Add callback implementation.
-  const auto *MatchedDecl = Result.Nodes.getNodeAs<FunctionDecl>("x");
-  if (!MatchedDecl->getIdentifier() || MatchedDecl->getName().starts_with("awesome_"))
+  const auto *BindCall = Result.Nodes.getNodeAs<CallExpr>("bindCall");
+  const auto *BindFunc = Result.Nodes.getNodeAs<FunctionDecl>("bindFunc");
+  
+  if (!BindCall || !BindFunc)
     return;
-  diag(MatchedDecl->getLocation(), "function %0 is insufficiently awesome")
-      << MatchedDecl
-      << FixItHint::CreateInsertion(MatchedDecl->getLocation(), "awesome_");
-  diag(MatchedDecl->getLocation(), "insert 'awesome'", DiagnosticIDs::Note);
+
+  // Get the source range for just the function name and qualifier
+  SourceRange Range = BindCall->getCallee()->getSourceRange();
+
+  diag(BindCall->getBeginLoc(), "use std::bind instead of boost::bind")
+      << FixItHint::CreateReplacement(Range, "std::bind");
 }
 
 } // namespace clang::tidy::modernize

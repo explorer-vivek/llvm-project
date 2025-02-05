@@ -13,7 +13,7 @@
 
 namespace clang::tidy::modernize {
 
-/// FIXME: Write a short description.
+/// Replaces boost::bind with std::bind
 ///
 /// For the user-facing documentation see:
 /// http://clang.llvm.org/extra/clang-tidy/checks/modernize/replace-boost-bind.html

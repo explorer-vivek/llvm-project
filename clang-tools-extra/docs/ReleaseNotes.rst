@@ -91,6 +91,41 @@ Improvements to clang-tidy
 New checks
 ^^^^^^^^^^
 
+- New :doc:`bugprone-bitwise-pointer-cast
+  <clang-tidy/checks/bugprone/bitwise-pointer-cast>` check.
+
+  Warns about code that tries to cast between pointers by means of
+  ``std::bit_cast`` or ``memcpy``.
+
+- New :doc:`bugprone-nondeterministic-pointer-iteration-order
+  <clang-tidy/checks/bugprone/nondeterministic-pointer-iteration-order>`
+  check.
+
+  Finds nondeterministic usages of pointers in unordered containers.
+
+- New :doc:`bugprone-tagged-union-member-count
+  <clang-tidy/checks/bugprone/tagged-union-member-count>` check.
+
+  Gives warnings for tagged unions, where the number of tags is
+  different from the number of data members inside the union.
+
+- New :doc:`modernize-replace-boost-ref
+  <clang-tidy/checks/modernize/replace-boost-ref>` check.
+
+  FIXME: Write a short description.
+
+- New :doc:`modernize-use-integer-sign-comparison
+  <clang-tidy/checks/modernize/use-integer-sign-comparison>` check.
+
+  Replace comparisons between signed and unsigned integers with their safe
+  C++20 ``std::cmp_*`` alternative, if available.
+
+- New :doc:`portability-template-virtual-member-function
+  <clang-tidy/checks/portability/template-virtual-member-function>` check.
+
+  Finds cases when an uninstantiated virtual member function in a template class
+  causes cross-compiler incompatibility.
+
 New check aliases
 ^^^^^^^^^^^^^^^^^
 

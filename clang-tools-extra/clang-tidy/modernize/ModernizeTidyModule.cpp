@@ -23,6 +23,7 @@
 #include "RawStringLiteralCheck.h"
 #include "RedundantVoidArgCheck.h"
 #include "ReplaceAutoPtrCheck.h"
+#include "ReplaceBoostRefCheck.h"
 #include "ReplaceDisallowCopyAndAssignMacroCheck.h"
 #include "ReplaceRandomShuffleCheck.h"
 #include "ReturnBracedInitListCheck.h"
@@ -75,6 +76,8 @@ public:
     CheckFactories.registerCheck<MinMaxUseInitializerListCheck>(
         "modernize-min-max-use-initializer-list");
     CheckFactories.registerCheck<PassByValueCheck>("modernize-pass-by-value");
+    CheckFactories.registerCheck<ReplaceBoostRefCheck>(
+        "modernize-replace-boost-ref");
     CheckFactories.registerCheck<UseDesignatedInitializersCheck>(
         "modernize-use-designated-initializers");
     CheckFactories.registerCheck<UseIntegerSignComparisonCheck>(

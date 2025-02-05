@@ -22,6 +22,7 @@ add_clang_library(clangTidyModernizeModule STATIC
   RawStringLiteralCheck.cpp
   RedundantVoidArgCheck.cpp
   ReplaceAutoPtrCheck.cpp
+  ReplaceBoostBindCheck.cpp
   ReplaceBoostRefCheck.cpp
   ReplaceDisallowCopyAndAssignMacroCheck.cpp
   ReplaceRandomShuffleCheck.cpp

@@ -50,7 +50,7 @@ void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
           )
       ).bind("bindCall");
 
-  // Match boost::placeholders::_N using regex
+  // Match boost::placeholders::_N using regex, without requiring compound statement
   auto BoostPlaceholderMatcher =
       declRefExpr(
           hasDeclaration(
@@ -58,8 +58,10 @@ void ReplaceBoostBindCheck::registerMatchers(MatchFinder *Finder) {
                   matchesName("::boost::placeholders::_[1-9]")
               )
           ),
-          // Find the innermost compound statement containing this placeholder
-          hasAncestor(compoundStmt().bind("scope"))
+          // Optionally match the innermost compound statement if it exists
+          optionally(
+              hasAncestor(compoundStmt().bind("scope"))
+          )
       ).bind("placeholder");
 
   // Match the expressions, including those nested within other expressions
@@ -92,12 +94,26 @@ void ReplaceBoostBindCheck::check(const MatchFinder::MatchResult &Result) {
 
   // Handle boost::placeholders replacement
   if (const auto *Placeholder = Result.Nodes.getNodeAs<DeclRefExpr>("placeholder")) {
-    const auto *Scope = Result.Nodes.getNodeAs<CompoundStmt>("scope");
-    if (!Scope)
-      return;
+    StringRef Name = Placeholder->getDecl()->getName();
+    SourceRange Range = Placeholder->getSourceRange();
 
-    // Only add the using directive once per scope
+    const auto *Scope = Result.Nodes.getNodeAs<CompoundStmt>("scope");
+    if (!Scope) {
+      // No parent scope found - use fully qualified name
+      diag(Placeholder->getBeginLoc(), 
+           "warning: boost::placeholders::%0 used outside of a compound statement, "
+           "using fully qualified std::placeholders::%0")
+          << Name;
+      std::string Replacement = "std::placeholders::" + Name.str();
+      diag(Placeholder->getBeginLoc(), 
+           "use std::placeholders::%0 instead of boost::placeholders::%0")
+          << Name
+          << FixItHint::CreateReplacement(Range, Replacement);
+      return;
+    }
+
     if (!Impl->hasUsingDirective(Scope)) {
+      // Add using directive for top-level scope
       const SourceManager &SM = *Result.SourceManager;
       SourceLocation InsertLoc = Scope->getLBracLoc().getLocWithOffset(1);
       
@@ -112,11 +128,9 @@ void ReplaceBoostBindCheck::check(const MatchFinder::MatchResult &Result) {
 
       std::string Indent;
       if (FirstTokenLoc.isValid()) {
-        // Get the raw source text from the start of the line up to the token
         bool Invalid = false;
         const char *TokenPtr = SM.getCharacterData(FirstTokenLoc, &Invalid);
         if (!Invalid) {
-          // Find start of the line
           const char *LineStart = TokenPtr;
           while (LineStart > SM.getCharacterData(Scope->getLBracLoc()) && 
                  (LineStart[-1] == ' ' || LineStart[-1] == '\t')) {
@@ -126,23 +140,19 @@ void ReplaceBoostBindCheck::check(const MatchFinder::MatchResult &Result) {
         }
       }
       
-      // Add the using directive with copied indentation
       diag(InsertLoc, "add using directive for std::placeholders")
           << FixItHint::CreateInsertion(
                  InsertLoc,
                  "\n" + Indent + "using namespace std::placeholders;\n");
       
       Impl->markUsingDirectiveInserted(Scope);
-    }
 
-    // Replace boost::placeholders::_N with just _N
-    StringRef Name = Placeholder->getDecl()->getName();
-    SourceRange Range = Placeholder->getSourceRange();
-    
-    diag(Placeholder->getBeginLoc(), 
-         "use %0 instead of boost::placeholders::%0")
-        << Name
-        << FixItHint::CreateReplacement(Range, Name);
+      // Use unqualified name when we have the using directive
+      diag(Placeholder->getBeginLoc(), 
+           "use %0 instead of boost::placeholders::%0")
+          << Name
+          << FixItHint::CreateReplacement(Range, Name);
+    }
   }
 }
 

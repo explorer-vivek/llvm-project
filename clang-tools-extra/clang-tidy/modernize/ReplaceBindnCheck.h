@@ -1,4 +1,4 @@
-//===--- ReplaceBindnCheck.h - clang-tidy -----------------------*- C++ -*-===//
+//===--- ReplaceBindNCheck.h - clang-tidy -----------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -13,7 +13,7 @@
 
 namespace clang::tidy::modernize {
 
-/// FIXME: Write a short description.
+/// Replaces std::bind1st and std::bind2nd with std::bind
 ///
 /// For the user-facing documentation see:
 /// http://clang.llvm.org/extra/clang-tidy/checks/modernize/replace-bindn.html

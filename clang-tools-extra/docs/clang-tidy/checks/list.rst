@@ -288,6 +288,7 @@ Clang-Tidy Checks
    :doc:`modernize-raw-string-literal <modernize/raw-string-literal>`, "Yes"
    :doc:`modernize-redundant-void-arg <modernize/redundant-void-arg>`, "Yes"
    :doc:`modernize-replace-auto-ptr <modernize/replace-auto-ptr>`, "Yes"
+   :doc:`modernize-replace-bindn <modernize/replace-bindn>`, "Yes"
    :doc:`modernize-replace-boost-bind <modernize/replace-boost-bind>`, "Yes"
    :doc:`modernize-replace-boost-ref <modernize/replace-boost-ref>`, "Yes"
    :doc:`modernize-replace-disallow-copy-and-assign-macro <modernize/replace-disallow-copy-and-assign-macro>`, "Yes"

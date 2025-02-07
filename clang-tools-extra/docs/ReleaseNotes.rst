@@ -109,6 +109,11 @@ New checks
   Gives warnings for tagged unions, where the number of tags is
   different from the number of data members inside the union.
 
+- New :doc:`modernize-replace-bindn
+  <clang-tidy/checks/modernize/replace-bindn>` check.
+
+  FIXME: Write a short description.
+
 - New :doc:`modernize-replace-boost-bind
   <clang-tidy/checks/modernize/replace-boost-bind>` check.
 
